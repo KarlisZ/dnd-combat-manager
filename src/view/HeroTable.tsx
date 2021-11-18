@@ -1,17 +1,14 @@
 import {Component, FormEventHandler} from "react";
+import { HeroData } from "../controller/MainController";
 
-export interface HeroData {
-    name: string;
-    initiative: number;
-}
 
 export class HeroTable extends Component<
     { onAddHero: (heroData: HeroData) => void }
 > {
 
     private inputData = {
-        name: "",
-        init: "",
+        name: "default hero",
+        init: "10",
     }
 
     public render() {

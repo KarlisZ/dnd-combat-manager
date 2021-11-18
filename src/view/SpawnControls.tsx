@@ -1,13 +1,8 @@
 import {Component, FormEventHandler} from "react";
-export interface SpawnData {
-    name:string,
-    hp:number,
-    initiativeMod:number,
-    count:number,
-}
+import { SpawnData } from "../controller/MainController";
 
-export class UserControls extends Component<{onSubmit:(spawnData:SpawnData) => void}> {
-    private name = "Name";
+export class SpawnControls extends Component<{onSubmit:(spawnData:SpawnData) => void}> {
+    private name = "monster";
     private hp = "10";
     private init = "0";
     private count = "1";
@@ -31,7 +26,7 @@ export class UserControls extends Component<{onSubmit:(spawnData:SpawnData) => v
                     Spawn count:
                     <input type="number" name="count" defaultValue={this.count} onChange={this.inputChangeHandler}/>
                 </label>
-                <input type="button" value="Submit" onClick={this.onSubmit} />
+                <input type="button" value="Spawn" onClick={this.onSubmit} />
             </form>
         </>;
     }

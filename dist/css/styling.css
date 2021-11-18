@@ -1,14 +1,35 @@
 table {
     border-collapse: collapse;
-    width: 100%;
+
 }
 
 td, th {
     border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
+    text-align: center;
+    padding: 3px;
+    font-size: small;
+    width: auto;
 }
 
 tr:nth-child(even) {
     background-color: #dddddd;
+}
+
+input[type="text"] {
+    min-width: 10;
+    width: 70;
+}
+
+input[type="number"] {
+    min-width: 10;
+    width: 40;
+}
+
+input[type="button"] {
+    min-width: 10;
+    width: fit-content;
+}
+
+button {
+    width: 5;
 }
