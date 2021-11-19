@@ -1,17 +1,7 @@
 import { v4 as uuid } from 'uuid';
+import { MainModel, UnitData } from '../model/MainModel';
 
 
-export interface UnitData {
-    order: number;
-    name: string;
-    currentHp: number;
-    initiative: number;
-    initiativeRoll: number;
-    initiativeMod: number;
-    startingHp: number;
-    uuid: string;
-    roundHp: number[];
-}
 
 interface RoundData {
     hpChange: {id:string, value:number}[];
@@ -31,11 +21,13 @@ export interface SpawnData {
 
 
 export class MainController {
-    public readonly allUnits: UnitData[] = [];
+    public constructor(private model:MainModel) {
+
+    }
     public onUpdate?: () => void;
 
     public addHero = (hero:HeroData) => {
-        this.allUnits.unshift({
+        this.model.allUnits.unshift({
             order: 0,
             currentHp: 10,
             initiative: hero.initiative,
@@ -52,7 +44,7 @@ export class MainController {
 
     public addNpc = (spawnData:SpawnData) => {
         const initativeRoll = getRandomInt(1, 20);
-        this.allUnits.push({
+        this.model.allUnits.push({
             order: 0,
             currentHp: spawnData.hp,
             initiativeMod: spawnData.initiativeMod,
@@ -68,12 +60,15 @@ export class MainController {
     }
 
     public removeUnit = (uuid:string): void => {
-        this.allUnits.splice(this.allUnits.findIndex(u => u.uuid === uuid), 1);
+        this.model.allUnits.splice(this.model.allUnits.findIndex(u => u.uuid === uuid), 1);
+        this.updateOrder();
+        this.onUpdate?.();
     }
 
 
-    public addHpChange(id: string, round: number, value:number) {
-        const unit = this.allUnits.find(u => u.uuid === id);
+    public addHpChange = (id: string, round: number, value:number) => {
+        console.log(this.model.allUnits)
+        const unit = this.model.allUnits.find(u => u.uuid === id);
         if(!unit) throw new Error(`no such unit ${id}`);
 
         unit.roundHp[round] = value;
@@ -90,7 +85,7 @@ export class MainController {
     }
 
     private updateOrder():void {
-        const sorted = [...this.allUnits].sort((a,b) => b.initiative - a.initiative);
+        const sorted = [...this.model.allUnits].sort((a,b) => b.initiative - a.initiative);
         for(let i = 0; i< sorted.length; i++) {
             sorted[i].order = i+1;
         }

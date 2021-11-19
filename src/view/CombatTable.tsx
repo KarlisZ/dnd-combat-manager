@@ -1,12 +1,13 @@
 import {Component, FormEventHandler, KeyboardEventHandler} from "react";
-import { MainController, UnitData } from "../controller/MainController";
+import { MainController } from "../controller/MainController";
+import { UnitData } from "../model/MainModel";
 import { CombatControls } from "./CombatControls";
 
 
-export class CombatTable extends Component<{controller:MainController}, {}> {
+export class CombatTable extends Component<{controller:MainController, allUnits:UnitData[]}, {}> {
     private roundsNum: number = 1;
     public render(){
-        const allUnits = this.props.controller.allUnits;
+        const allUnits = this.props.allUnits;
         const rows = this.createUnitRows(allUnits);
         const roundHeaders = [];
         for (let i = 0; i<this.roundsNum; i++) {
@@ -17,6 +18,7 @@ export class CombatTable extends Component<{controller:MainController}, {}> {
                 <table>
                     <thead>
                     <tr>
+                        <th>Del</th>
                         <th>Order</th>
                         <th>Name</th>
                         <th>Cur HP</th>
@@ -24,7 +26,6 @@ export class CombatTable extends Component<{controller:MainController}, {}> {
                         <th>Init Roll</th>
                         <th>Init Mod</th>
                         <th>Start HP</th>
-                        <th>-</th>
                         {roundHeaders}
                     </tr>
                     </thead>
@@ -58,20 +59,20 @@ export class CombatTable extends Component<{controller:MainController}, {}> {
             for(let ii = 0; ii < this.roundsNum; ii++) {
                 hpChangeRows.push(
                     <td key={`hpChange-${unitData.uuid}-round-${ii}`}>
-                        <input type="text" pattern="[\d-+*/]+" id={`${ii}-${unitData.uuid}`} onKeyDown={this.onHpChangeEntered}/>
+                        <input type="text" defaultValue={unitData.roundHp[ii]} pattern="[\d\-\+\*\/]+" id={`${ii}::${unitData.uuid}`} onKeyDown={this.onHpChangeEntered}/>
                     </td>
                 );
             }
 
-            const newRow = <tr key={`unit-data-${unitData.order}`}>
-                <td>{unitData.order + 1}</td>
+            const newRow = <tr key={`unit-data-${unitData.uuid}`}>
+                <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
+                <td>{unitData.order}</td>
                 <td>{unitData.name}</td>
                 <td>{unitData.currentHp}</td>
                 <td>{unitData.initiative}</td>
                 <td>{unitData.initiativeRoll}</td>
                 <td>{unitData.initiativeMod}</td>
                 <td><input type="number" defaultValue={unitData.startingHp}></input></td>
-                <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
                 {hpChangeRows}
             </tr>;
 
@@ -94,7 +95,7 @@ export class CombatTable extends Component<{controller:MainController}, {}> {
              
             if(Number.isNaN(value)) return;
 
-            const [round, id] = e.currentTarget.id.split("-");
+            const [round, id] = e.currentTarget.id.split("::");
             this.props.controller.addHpChange(id, Number.parseInt(round), value);
         }
     }
