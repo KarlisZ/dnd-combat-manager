@@ -27,34 +27,42 @@ export class MainController {
     public onUpdate?: () => void;
 
     public addHero = (hero:HeroData) => {
-        this.model.allUnits.unshift({
-            order: 0,
+        this.addUnit({
             currentHp: 10,
             initiative: hero.initiative,
             initiativeMod: 0,
             initiativeRoll: hero.initiative,
             name: hero.name,
             startingHp: 10,
-            uuid: uuid(),
-            roundHp: [],
-        });
-        this.updateOrder();
-        this.onUpdate?.();
+        }, false);
     }
 
     public addNpc = (spawnData:SpawnData) => {
         const initativeRoll = getRandomInt(1, 20);
-        this.model.allUnits.push({
-            order: 0,
+        this.addUnit({
             currentHp: spawnData.hp,
             initiativeMod: spawnData.initiativeMod,
             initiativeRoll: initativeRoll,
             initiative: initativeRoll + spawnData.initiativeMod,
             name: spawnData.name,
             startingHp: spawnData.hp,
-            uuid: uuid(),
-            roundHp: [],
         });
+    }
+
+    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp">, pushNotUnshift = true) => {
+        const data:UnitData = {
+            ...unitData,
+            order: 0,
+            uuid: uuid(),
+            roundHp: new Array(100).fill(0),
+        };
+
+        if(pushNotUnshift) {
+            this.model.allUnits.push(data);
+        } else {
+            this.model.allUnits.unshift(data);
+        }
+
         this.updateOrder();
         this.onUpdate?.();
     }
@@ -67,7 +75,6 @@ export class MainController {
 
 
     public addHpChange = (id: string, round: number, value:number) => {
-        console.log(this.model.allUnits)
         const unit = this.model.allUnits.find(u => u.uuid === id);
         if(!unit) throw new Error(`no such unit ${id}`);
 

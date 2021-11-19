@@ -18,6 +18,8 @@ export class MainView extends Component<{controller:MainController, model:MainMo
             <CombatTable controller={this.props.controller} allUnits={this.state.allUnits}/>
             <SpawnControls onSubmit={this.props.controller.addNpc}/>
             <HeroTable onAddHero={this.props.controller.addHero}/>
+            <label>Save?</label>
+            <input type="checkbox" defaultChecked={true} />
         </>;
     }
 }
