@@ -80,25 +80,27 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
                     <td key={`hpChange-${unitData.uuid}-round-${ii}`} className={isCurrentRound ? "active-round-cell" : undefined}>
                         <input 
                             type="text"
+                            className="hp-change-input"
                             defaultValue={unitData.roundHp[ii] > 0 ? unitData.roundHp[ii] : undefined}
                             pattern="[\d\-\+\*\/]+"
                             id={`${ii}::${unitData.uuid}`}
                             onChange={this.onHpChange}
-                            onKeyDown={this.onHpChangeKey}
+                            onKeyDown={this.onInputKeyDown}
                         />
                     </td>
                 );
             }
 
+            const isBadHp = unitData.currentHp <= 0;
             const newRow = <tr key={`unit-data-${unitData.uuid}`} className={isUnitTurn ? "active-turn" : undefined}>
                 <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
                 <td>{unitData.order}</td>
                 <td>{unitData.name}</td>
-                <td>{unitData.currentHp}</td>
+                <td className={isBadHp ? "bad-hp-cell" : undefined}>{unitData.currentHp}</td>
                 <td>{unitData.initiative}</td>
-                <td>{unitData.initiativeRoll}</td>
-                <td>{unitData.initiativeMod}</td>
-                <td><input type="number" defaultValue={unitData.startingHp}></input></td>
+                <td><input type="number" id={unitData.uuid} defaultValue={unitData.initiativeRoll} onKeyDown={this.onInputKeyDown} onChange={this.onInitiativeChange}/></td>
+                <td><input type="number" id={unitData.uuid} defaultValue={unitData.initiativeMod} onKeyDown={this.onInputKeyDown} onChange={this.onInitiativeModChange}/></td>
+                <td><input type="number" id={unitData.uuid} defaultValue={unitData.startingHp} onKeyDown={this.onInputKeyDown} onChange={this.onStartingHpChange}></input></td>
                 {hpChangeRows}
             </tr>;
 
@@ -108,9 +110,25 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
         return allRows;
     }
 
-    
+    private onStartingHpChange: ChangeEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        const newHp = Number.parseInt(e.currentTarget.value);
+        this.props.controller.setStartingHp(id, newHp);
+    }
 
-    private onHpChangeKey: KeyboardEventHandler<HTMLInputElement> = e => {
+    private onInitiativeChange: ChangeEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        const newRoll = Number.parseInt(e.currentTarget.value);
+        this.props.controller.setInitiativeRoll(id, newRoll);
+    }
+
+    private onInitiativeModChange: ChangeEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        const newMod = Number.parseInt(e.currentTarget.value);
+        this.props.controller.setInitiativeMod(id, newMod);
+    }
+
+    private onInputKeyDown: KeyboardEventHandler<HTMLInputElement> = e => {
         if(e.key === "Enter") {
             e.currentTarget.blur()
         }

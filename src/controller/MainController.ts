@@ -83,6 +83,32 @@ export class MainController {
         this.onUpdate?.();
     }
 
+    public setStartingHp = (id:string, hp:number) => {
+        const unit = this.model.allUnits.find(u => u.uuid === id);
+        if(!unit) throw new Error(`no such unit ${id}`);
+        unit.startingHp = hp
+        this.updateHp(unit);
+        this.onUpdate?.();
+    }
+
+    public setInitiativeRoll = (id:string, roll:number) => {
+        const unit = this.model.allUnits.find(u => u.uuid === id);
+        if(!unit) throw new Error(`no such unit ${id}`);
+        unit.initiativeRoll = roll;
+        unit.initiative = roll + unit.initiativeMod;
+        this.updateOrder();
+        this.onUpdate?.();
+    }
+
+    public setInitiativeMod = (id:string, mod:number) => {
+        const unit = this.model.allUnits.find(u => u.uuid === id);
+        if(!unit) throw new Error(`no such unit ${id}`);
+        unit.initiativeMod = mod;
+        unit.initiative = unit.initiativeRoll + mod;
+        this.updateOrder();
+        this.onUpdate?.();
+    }
+
     private updateHp(unit: UnitData) {
         let hpChange = 0;
         for (const roundChange of unit.roundHp) {

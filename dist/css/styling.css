@@ -37,6 +37,16 @@ button {
 .active-turn {
     background-color: darkseagreen;
 }
+
 .active-round-cell {
     background-color: tomato;
+}
+
+.hp-change-input {
+    width: 50 !important;
+}
+
+.bad-hp-cell {
+    background-color: firebrick !important;
+    font-weight: bold;
 }
