@@ -76,7 +76,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
         for(let unitNum = 0; unitNum < allUnits.length; unitNum++) {
             const unitData = allUnits[unitNum];
             const hpChangeRows:JSX.Element[] = [];
-            const isUnitTurn = this.state.turnNum === unitData.order;
+            const isUnitTurn = this.state.turnNum === unitData.turnOrder;
             for(let roundNum = 0; roundNum < this.activeRound; roundNum++) {
                 const isCurrentRound = this.activeRound === roundNum+1;
                 hpChangeRows.push(
@@ -119,7 +119,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
 
             const newRow = <tr key={`unit-data-${unitData.uuid}`} className={isUnitTurn ? "active-turn" : undefined}>
                 <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
-                <td>{unitData.order}</td>
+                <td>{unitData.turnOrder}</td>
                 <td><input className="combat-name-field" type="text" id={unitData.uuid} defaultValue={unitData.name} onKeyDown={this.onInputKeyDown} onChange={this.onNameChange}/></td>
                 <td className={isBadHp ? "bad-hp-cell" : undefined}>{unitData.currentHp}</td>
                 <td>{unitData.initiative}</td>

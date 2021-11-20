@@ -83,16 +83,16 @@ export class MainController {
             activeStatuses.push(...statuses.filter(s => {
                 const roundsLeft = s.endsRound - round;
                 
-                return roundsLeft > 0 || (roundsLeft === 0 && this.model.getUnitById(s.turnAppliedUnitId).order >= turnNum);
+                return roundsLeft > 0 || (roundsLeft === 0 && this.model.getUnitById(s.turnAppliedUnitId).turnOrder >= turnNum);
             }));
         }
         return activeStatuses;
     }
 
-    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp" | "roundStatus">, position: "start" | "end" = "end") => {
+    private addUnit = (unitData:Omit<UnitData, "turnOrder" | "uuid" | "roundHp" | "roundStatus">, position: "start" | "end" = "end") => {
         const data:UnitData = {
             ...unitData,
-            order: 0,
+            turnOrder: 0,
             uuid: uuid(),
             roundHp: new Array(100).fill(0),
             roundStatus: Array.from(new Array(100), () => []),
@@ -120,7 +120,7 @@ export class MainController {
         const possibleDuplicate = activeStatuses.find(s => s.statusId === statusId);
         if(possibleDuplicate) {
             possibleDuplicate.endsRound = Math.max(endsRound, possibleDuplicate.endsRound);
-            const turnApplied = this.model.getUnitById(possibleDuplicate.turnAppliedUnitId).order;
+            const turnApplied = this.model.getUnitById(possibleDuplicate.turnAppliedUnitId).turnOrder;
             possibleDuplicate.turnAppliedUnitId = turnNum > turnApplied ? unitIdForTurn : possibleDuplicate.turnAppliedUnitId;
         } else {
             unit.roundStatus[round-1].push({statusId, endsRound, turnAppliedUnitId: unitIdForTurn});
