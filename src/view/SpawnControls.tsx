@@ -1,7 +1,7 @@
-import {Component, FormEventHandler} from "react";
+import { Component, FormEventHandler } from "react";
 import { SpawnData } from "../controller/MainController";
 
-export class SpawnControls extends Component<{onSubmit:(spawnData:SpawnData) => void}> {
+export class SpawnControls extends Component<{onSubmit:(spawnData:SpawnData) => void;}> {
     private name = "Monster";
     private hp = "10";
     private init = "0";
@@ -37,10 +37,10 @@ export class SpawnControls extends Component<{onSubmit:(spawnData:SpawnData) => 
             hp: Number.parseInt(this.hp),
             initiativeMod: Number.parseInt(this.init),
             count: Number.parseInt(this.count),
-        })
-    }
+        });
+    };
 
     private inputChangeHandler: FormEventHandler<HTMLInputElement> = e => {
         (this as any)[e.currentTarget.name] = e.currentTarget.value;
-    }
+    };
 }

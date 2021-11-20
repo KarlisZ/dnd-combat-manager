@@ -1,16 +1,16 @@
-import {Component} from "react";
+import { Component } from "react";
 import { CombatTable } from "./CombatTable";
 import { HeroTable } from "./HeroTable";
 import { SpawnControls } from "./SpawnControls";
 import { MainController } from "../controller/MainController";
 import { MainModel, UnitData } from "../model/MainModel";
-export class MainView extends Component<{controller:MainController, model:MainModel},{allUnits:UnitData[]}> {
+export class MainView extends Component<{controller:MainController; model:MainModel;},{allUnits:UnitData[];}> {
     public state = {
         allUnits: [],
-    }
-    public constructor(props:{controller:MainController, model:MainModel}) {
+    };
+    public constructor(props:{controller:MainController; model:MainModel;}) {
         super(props);
-        this.props.controller.onUpdate = () => this.setState({allUnits:this.props.model.getUnitsInShowOrder()});
+        this.props.controller.onUpdate = () => this.setState({ allUnits:this.props.model.getUnitsInShowOrder() });
     }
 
     public render(){

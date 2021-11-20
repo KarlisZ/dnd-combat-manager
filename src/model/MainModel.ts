@@ -1,9 +1,9 @@
 import { UnitCondition } from "../controller/MainController";
 
 export interface StatusData {
-    statusId:UnitCondition,
-    endsRound:number,
-    turnAppliedUnitId:string,
+    statusId:UnitCondition;
+    endsRound:number;
+    turnAppliedUnitId:string;
 }
 export interface UnitData {
     turnOrder: number;
@@ -32,7 +32,7 @@ export class MainModel {
 
     public getUnitByOrder(order:number): UnitData {
         const unit = this.getUnitsArray().find(u => u.turnOrder === order);
-        if(!unit) throw new Error(`no such unit with order ${order}`);
+        if (!unit) throw new Error(`no such unit with order ${order}`);
         return unit;
     }
 
@@ -50,8 +50,8 @@ export class MainModel {
 
     public updateOrder():void {
         const sorted = this.getUnitsArray().sort((a,b) => b.initiative - a.initiative);
-        for(let i = 0; i< sorted.length; i++) {
-            sorted[i].turnOrder = i+1;
+        for (let i = 0; i < sorted.length; i++) {
+            sorted[i].turnOrder = i + 1;
         }
     }
 

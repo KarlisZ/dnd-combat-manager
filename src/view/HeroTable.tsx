@@ -1,15 +1,14 @@
-import {Component, FormEventHandler} from "react";
+import { Component, FormEventHandler } from "react";
 import { HeroData } from "../controller/MainController";
 
-
 export class HeroTable extends Component<
-    { onAddHero: (heroData: HeroData) => void }
+    { onAddHero: (heroData: HeroData) => void; }
 > {
 
     private inputData = {
         name: "My Hero",
         init: "10",
-    }
+    };
 
     public render() {
         return <div>
@@ -31,20 +30,20 @@ export class HeroTable extends Component<
                     </tr>
                 </tfoot>
             </table>
-        </div>
+        </div>;
     }
 
     private addHero: FormEventHandler<HTMLInputElement> = e => {
         const newHero: HeroData = {
             initiative: Number.parseInt(this.inputData.init),
             name: this.inputData.name,
-        }
+        };
 
         this.props.onAddHero(newHero);
-    }
+    };
 
     private inputChangeHandler: FormEventHandler<HTMLInputElement> = e => {
         (this.inputData as any)[e.currentTarget.name] = e.currentTarget.value;
-    }
+    };
 
 }

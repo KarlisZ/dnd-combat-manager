@@ -1,4 +1,3 @@
-
 module.exports = {
     root: true,
     "extends": [
@@ -24,7 +23,7 @@ module.exports = {
         "comma-dangle": ["error", "always-multiline"],
         "no-console": "error",
         "max-len": ["error", {
-            "code": 140,
+            "code": 150,
             "comments": 0,
             "ignorePattern": `^import |//|"[^"]{100,}"`,
         }],
@@ -93,5 +92,6 @@ module.exports = {
         "react/display-name": "off",
         "react/jsx-no-bind": ["error"],
         "react/no-children-prop": "off",
+        "react/react-in-jsx-scope": "off",
     },
 };

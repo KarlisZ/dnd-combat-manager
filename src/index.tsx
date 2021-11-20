@@ -10,8 +10,8 @@ window.onload = () => {
     document.body.append(appContainer);
     const model = new MainModel();
     const controller = new MainController(model);
-    
+
     const ref = React.createRef<MainView>();
     const mainView = <MainView controller={controller} model={model} ref={ref}/>;
     ReactDOM.render(mainView,appContainer);
-}
+};
