@@ -6,7 +6,7 @@ import { CombatControls } from "./CombatControls";
 
 export class CombatTable extends Component<{controller:MainController, allUnits:UnitData[]}, {turnNum:number, showStatusIds:string[]}> {
     public state: {turnNum:number, showStatusIds:string[]} = {
-        turnNum : 1,
+        turnNum : 1, // TODO: move turn management to model
         showStatusIds: [],
     }
     private activeRound: number = 1;
@@ -58,6 +58,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
 
     private onPrevTurn = () => {
         if(this.state.turnNum === 1) {
+            if(this.activeRound === 1) return;
             this.activeRound = Math.max(this.activeRound-1, 1);
             this.setState({turnNum:this.props.allUnits.length});
         } else {
@@ -93,7 +94,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
                 );
             }
 
-            const currentStatuses = this.props.controller.getStatuses(unitData, this.activeRound);
+            const currentStatuses = this.props.controller.getStatuses(unitData, this.activeRound, this.state.turnNum);
             let statusInfo = [];
             for (const status of currentStatuses) {
                 statusInfo.push(<p className="status-info-text" key={UnitCondition[status.statusId]}>{`${UnitCondition[status.statusId]}, ${status.endsRound - this.activeRound}r`}</p>)
@@ -119,7 +120,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
             const newRow = <tr key={`unit-data-${unitData.uuid}`} className={isUnitTurn ? "active-turn" : undefined}>
                 <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
                 <td>{unitData.order}</td>
-                <td>{unitData.name}</td>
+                <td><input className="combat-name-field" type="text" id={unitData.uuid} defaultValue={unitData.name} onKeyDown={this.onInputKeyDown} onChange={this.onNameChange}/></td>
                 <td className={isBadHp ? "bad-hp-cell" : undefined}>{unitData.currentHp}</td>
                 <td>{unitData.initiative}</td>
                 <td><input type="number" id={unitData.uuid} defaultValue={unitData.initiativeRoll} onKeyDown={this.onInputKeyDown} onChange={this.onInitiativeChange}/></td>
@@ -140,13 +141,19 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
         const duration = Number.parseInt(e.currentTarget.parentElement?.querySelector<HTMLInputElement>("#status-duration")?.value ?? "1");
         const statusIndex = e.currentTarget.parentElement?.querySelector<HTMLSelectElement>("#status-select")?.selectedIndex;
         if(statusIndex === undefined) throw new Error("Invalid status");
-        this.props.controller.addStatus(id, this.activeRound, duration, statusIndex);
+        this.props.controller.addStatus(id, this.activeRound, this.state.turnNum, duration, statusIndex);
         this.setState(prevState => ({showStatusIds:prevState.showStatusIds.filter(i => i !== id)}))
     }
 
     private showStatusInpt: FormEventHandler<HTMLInputElement> = e => {
         const id = e.currentTarget.id;
         this.setState(prevState => ({showStatusIds:[...prevState.showStatusIds, id]}));
+    }
+
+    private onNameChange: ChangeEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        const name = e.currentTarget.value;
+        this.props.controller.setName(id, name);
     }
 
     private onStartingHpChange: ChangeEventHandler<HTMLInputElement> = e => {

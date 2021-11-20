@@ -7,7 +7,7 @@ export class HeroTable extends Component<
 > {
 
     private inputData = {
-        name: "default hero",
+        name: "My Hero",
         init: "10",
     }
 

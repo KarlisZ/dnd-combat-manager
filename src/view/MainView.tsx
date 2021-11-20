@@ -10,7 +10,7 @@ export class MainView extends Component<{controller:MainController, model:MainMo
     }
     public constructor(props:{controller:MainController, model:MainModel}) {
         super(props);
-        this.props.controller.onUpdate = () => this.setState({allUnits:[...this.props.model.allUnits]});
+        this.props.controller.onUpdate = () => this.setState({allUnits:this.props.model.duplicateAllUnits()});
     }
 
     public render(){

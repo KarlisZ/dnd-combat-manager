@@ -52,7 +52,7 @@ export class MainController {
     }
     public onUpdate?: () => void;
 
-    public addHero = (hero:HeroData) => {
+    public addHero = (hero:HeroData) => { // TODO move all this shit to model
         this.addUnit({
             currentHp: 10,
             initiative: hero.initiative,
@@ -60,7 +60,7 @@ export class MainController {
             initiativeRoll: hero.initiative,
             name: hero.name,
             startingHp: 10,
-        }, false);
+        }, "start");
     }
 
     public addNpc = (spawnData:SpawnData) => {
@@ -75,16 +75,21 @@ export class MainController {
         });
     }
 
-    public getStatuses(unit: UnitData, round: number):StatusData[] {
+    public getStatuses(unit: UnitData, round: number, turnNum:number):StatusData[] {
+        // statuses end at the end of the turn when they were applied
         const activeStatuses: StatusData[] = [];
         for (let i=0; i<round; i++) {
             const statuses = unit.roundStatus[i];
-            activeStatuses.push(...statuses.filter(s => s.endsRound >= round));
+            activeStatuses.push(...statuses.filter(s => {
+                const roundsLeft = s.endsRound - round;
+                
+                return roundsLeft > 0 || (roundsLeft === 0 && this.model.getUnitById(s.turnAppliedUnitId).order >= turnNum);
+            }));
         }
         return activeStatuses;
     }
 
-    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp" | "roundStatus">, pushNotUnshift = true) => {
+    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp" | "roundStatus">, position: "start" | "end" = "end") => {
         const data:UnitData = {
             ...unitData,
             order: 0,
@@ -93,41 +98,40 @@ export class MainController {
             roundStatus: Array.from(new Array(100), () => []),
         };
 
-        if(pushNotUnshift) {
-            this.model.allUnits.push(data);
-        } else {
-            this.model.allUnits.unshift(data);
-        }
-
-        this.updateOrder();
+        this.model.addUnit(data, position);
+        this.model.updateOrder();
         this.onUpdate?.();
     }
 
     public removeUnit = (uuid:string): void => {
-        this.model.allUnits.splice(this.model.allUnits.findIndex(u => u.uuid === uuid), 1);
-        this.updateOrder();
+        this.model.removeUnit(uuid);
+        this.model.updateOrder();
         this.onUpdate?.();
     }
 
 
-    public addStatus = (id: string, round: number, duration:number, statusId:UnitCondition) => {
-        const unit = this.model.allUnits.find(u => u.uuid === id);
-        if(!unit) throw new Error(`no such unit ${id}`);
+    public addStatus = (id: string, round: number, turnNum:number, duration:number, statusId:UnitCondition) => {
+        const unit = this.model.getUnitById(id);
+        const unitIdForTurn = this.model.getUnitByOrder(turnNum)?.uuid;
+        if(!unitIdForTurn) throw new Error("Cannot find unit for turn");
+
         const endsRound = round+duration;
-        const activeStatuses = this.getStatuses(unit, round);
+        const activeStatuses = this.getStatuses(unit, round, turnNum);
         const possibleDuplicate = activeStatuses.find(s => s.statusId === statusId);
         if(possibleDuplicate) {
             possibleDuplicate.endsRound = Math.max(endsRound, possibleDuplicate.endsRound);
+            const turnApplied = this.model.getUnitById(possibleDuplicate.turnAppliedUnitId).order;
+            possibleDuplicate.turnAppliedUnitId = turnNum > turnApplied ? unitIdForTurn : possibleDuplicate.turnAppliedUnitId;
         } else {
-            unit.roundStatus[round-1].push({statusId, endsRound});
+            unit.roundStatus[round-1].push({statusId, endsRound, turnAppliedUnitId: unitIdForTurn});
         }
 
         this.onUpdate?.();
     }
 
     public addHpChange = (id: string, round: number, value:number) => {
-        const unit = this.model.allUnits.find(u => u.uuid === id);
-        if(!unit) throw new Error(`no such unit ${id}`);
+        const unit = this.model.getUnitById(id);
+        
 
         unit.roundHp[round-1] = value;
         this.updateHp(unit);
@@ -135,28 +139,35 @@ export class MainController {
     }
 
     public setStartingHp = (id:string, hp:number) => {
-        const unit = this.model.allUnits.find(u => u.uuid === id);
-        if(!unit) throw new Error(`no such unit ${id}`);
+        const unit = this.model.getUnitById(id);
+        
         unit.startingHp = hp
         this.updateHp(unit);
         this.onUpdate?.();
     }
 
+    public setName = (id:string, newName:string) => {
+        const unit = this.model.getUnitById(id);
+        
+        unit.name = newName;
+        this.onUpdate?.();
+    }
+
     public setInitiativeRoll = (id:string, roll:number) => {
-        const unit = this.model.allUnits.find(u => u.uuid === id);
-        if(!unit) throw new Error(`no such unit ${id}`);
+        const unit = this.model.getUnitById(id);
+        
         unit.initiativeRoll = roll;
         unit.initiative = roll + unit.initiativeMod;
-        this.updateOrder();
+        this.model.updateOrder();
         this.onUpdate?.();
     }
 
     public setInitiativeMod = (id:string, mod:number) => {
-        const unit = this.model.allUnits.find(u => u.uuid === id);
-        if(!unit) throw new Error(`no such unit ${id}`);
+        const unit = this.model.getUnitById(id);
+        
         unit.initiativeMod = mod;
         unit.initiative = unit.initiativeRoll + mod;
-        this.updateOrder();
+        this.model.updateOrder();
         this.onUpdate?.();
     }
 
@@ -169,12 +180,7 @@ export class MainController {
     }
 
 
-    private updateOrder():void {
-        const sorted = [...this.model.allUnits].sort((a,b) => b.initiative - a.initiative);
-        for(let i = 0; i< sorted.length; i++) {
-            sorted[i].order = i+1;
-        }
-    }
+
 }
 
 function getRandomInt(min: number, max: number) {

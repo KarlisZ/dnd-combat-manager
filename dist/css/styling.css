@@ -54,3 +54,7 @@ button {
 .status-info-text {
     margin: 0;
 }
+
+.combat-name-field {
+    /* width: min-content !important; */
+}
