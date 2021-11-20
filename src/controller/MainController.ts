@@ -15,20 +15,6 @@ export interface SpawnData {
     count:number,
 }
 
-// export const UnitCondition = {
-//     Blinded: "Blinded",
-//     Charmed: "Charmed",
-//     Deafened: "Deafened",
-//     Frightened: "Frightened",
-//     Incapacitated: "Incapacitated",
-//     Invisible: "Invisible",
-//     Paralyzed: "Paralyzed",
-//     Poisoned: "Poisoned",
-//     Prone: "Prone",
-//     Stunned: "Stunned",
-//     Restrained: "Restrained",
-// }
-
 export enum UnitCondition {
     Blinded,
     Charmed,
@@ -41,10 +27,8 @@ export enum UnitCondition {
     Prone,
     Stunned,
     Restrained,
+    Hasted,
 }
-
-
-
 
 export class MainController {
     public constructor(private model:MainModel) {
