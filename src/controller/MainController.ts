@@ -1,11 +1,7 @@
 import { v4 as uuid } from 'uuid';
-import { MainModel, UnitData } from '../model/MainModel';
+import { MainModel, StatusData, UnitData } from '../model/MainModel';
 
 
-
-interface RoundData {
-    hpChange: {id:string, value:number}[];
-}
 
 export interface HeroData {
     name: string;
@@ -18,6 +14,36 @@ export interface SpawnData {
     initiativeMod:number,
     count:number,
 }
+
+// export const UnitCondition = {
+//     Blinded: "Blinded",
+//     Charmed: "Charmed",
+//     Deafened: "Deafened",
+//     Frightened: "Frightened",
+//     Incapacitated: "Incapacitated",
+//     Invisible: "Invisible",
+//     Paralyzed: "Paralyzed",
+//     Poisoned: "Poisoned",
+//     Prone: "Prone",
+//     Stunned: "Stunned",
+//     Restrained: "Restrained",
+// }
+
+export enum UnitCondition {
+    Blinded,
+    Charmed,
+    Deafened,
+    Frightened,
+    Incapacitated,
+    Invisible,
+    Paralyzed,
+    Poisoned,
+    Prone,
+    Stunned,
+    Restrained,
+}
+
+
 
 
 export class MainController {
@@ -49,12 +75,22 @@ export class MainController {
         });
     }
 
-    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp">, pushNotUnshift = true) => {
+    public getStatuses(unit: UnitData, round: number):StatusData[] {
+        const activeStatuses: StatusData[] = [];
+        for (let i=0; i<round; i++) {
+            const statuses = unit.roundStatus[i];
+            activeStatuses.push(...statuses.filter(s => s.endsRound >= round));
+        }
+        return activeStatuses;
+    }
+
+    private addUnit = (unitData:Omit<UnitData, "order" | "uuid" | "roundHp" | "roundStatus">, pushNotUnshift = true) => {
         const data:UnitData = {
             ...unitData,
             order: 0,
             uuid: uuid(),
             roundHp: new Array(100).fill(0),
+            roundStatus: Array.from(new Array(100), () => []),
         };
 
         if(pushNotUnshift) {
@@ -74,11 +110,26 @@ export class MainController {
     }
 
 
+    public addStatus = (id: string, round: number, duration:number, statusId:UnitCondition) => {
+        const unit = this.model.allUnits.find(u => u.uuid === id);
+        if(!unit) throw new Error(`no such unit ${id}`);
+        const endsRound = round+duration;
+        const activeStatuses = this.getStatuses(unit, round);
+        const possibleDuplicate = activeStatuses.find(s => s.statusId === statusId);
+        if(possibleDuplicate) {
+            possibleDuplicate.endsRound = Math.max(endsRound, possibleDuplicate.endsRound);
+        } else {
+            unit.roundStatus[round-1].push({statusId, endsRound});
+        }
+
+        this.onUpdate?.();
+    }
+
     public addHpChange = (id: string, round: number, value:number) => {
         const unit = this.model.allUnits.find(u => u.uuid === id);
         if(!unit) throw new Error(`no such unit ${id}`);
 
-        unit.roundHp[round] = value;
+        unit.roundHp[round-1] = value;
         this.updateHp(unit);
         this.onUpdate?.();
     }
@@ -116,6 +167,7 @@ export class MainController {
         }
         unit.currentHp = unit.startingHp + hpChange;
     }
+
 
     private updateOrder():void {
         const sorted = [...this.model.allUnits].sort((a,b) => b.initiative - a.initiative);

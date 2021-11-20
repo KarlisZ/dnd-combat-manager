@@ -2,7 +2,7 @@ import {Component, FormEventHandler} from "react";
 import { SpawnData } from "../controller/MainController";
 
 export class SpawnControls extends Component<{onSubmit:(spawnData:SpawnData) => void}> {
-    private name = "monster";
+    private name = "Monster";
     private hp = "10";
     private init = "0";
     private count = "1";

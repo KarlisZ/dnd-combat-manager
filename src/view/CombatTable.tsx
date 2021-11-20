@@ -1,21 +1,22 @@
-import {ChangeEventHandler, Component, FormEventHandler, KeyboardEventHandler} from "react";
-import { MainController } from "../controller/MainController";
+import React, {ChangeEventHandler, Component, FormEventHandler, KeyboardEventHandler} from "react";
+import { MainController, UnitCondition } from "../controller/MainController";
 import { UnitData } from "../model/MainModel";
 import { CombatControls } from "./CombatControls";
 
 
-export class CombatTable extends Component<{controller:MainController, allUnits:UnitData[]}, {turnNum:number}> {
-    public state = {
+export class CombatTable extends Component<{controller:MainController, allUnits:UnitData[]}, {turnNum:number, showStatusIds:string[]}> {
+    public state: {turnNum:number, showStatusIds:string[]} = {
         turnNum : 1,
+        showStatusIds: [],
     }
-    private roundsNum: number = 1;
+    private activeRound: number = 1;
 
     public render(){
         const allUnits = this.props.allUnits;
         const rows = this.createUnitRows(allUnits);
         const roundHeaders = [];
-        for (let i = 0; i<this.roundsNum; i++) {
-            const isActiveRound = this.roundsNum === i+1;
+        for (let i = 0; i<this.activeRound; i++) {
+            const isActiveRound = this.activeRound === i+1;
             roundHeaders.push(<th key={`round-${i}`} className={isActiveRound ? "active-round-cell" : undefined}>R {i+1}</th>)
         }
         return allUnits.length 
@@ -32,6 +33,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
                         <th>Init Mod</th>
                         <th>Start HP</th>
                         {roundHeaders}
+                        <th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -46,7 +48,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
 
     private onNextTurn = () => {
         if(this.state.turnNum === this.props.allUnits.length) {
-            this.roundsNum++;
+            this.activeRound++;
             this.setState({turnNum:1});
         } else {
             this.setState({turnNum:this.state.turnNum + 1});
@@ -56,7 +58,7 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
 
     private onPrevTurn = () => {
         if(this.state.turnNum === 1) {
-            this.roundsNum = Math.max(this.roundsNum-1, 1);
+            this.activeRound = Math.max(this.activeRound-1, 1);
             this.setState({turnNum:this.props.allUnits.length});
         } else {
             this.setState({turnNum:this.state.turnNum -1});
@@ -64,26 +66,26 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
     }
 
     public onNewCombat = () => {
-        this.roundsNum = 1;
+        this.activeRound = 1;
         this.setState({turnNum: 1});
     }
 
     private createUnitRows(allUnits:UnitData[]):JSX.Element[] {
         const allRows:JSX.Element[] = []
-        for(let i = 0; i < allUnits.length; i++) {
-            const unitData = allUnits[i];
+        for(let unitNum = 0; unitNum < allUnits.length; unitNum++) {
+            const unitData = allUnits[unitNum];
             const hpChangeRows:JSX.Element[] = [];
             const isUnitTurn = this.state.turnNum === unitData.order;
-            for(let ii = 0; ii < this.roundsNum; ii++) {
-                const isCurrentRound = this.roundsNum === ii+1;
+            for(let roundNum = 0; roundNum < this.activeRound; roundNum++) {
+                const isCurrentRound = this.activeRound === roundNum+1;
                 hpChangeRows.push(
-                    <td key={`hpChange-${unitData.uuid}-round-${ii}`} className={isCurrentRound ? "active-round-cell" : undefined}>
+                    <td key={`hpChange-${unitData.uuid}-round-${roundNum}`} className={isCurrentRound ? "active-round-cell" : undefined}>
                         <input 
                             type="text"
                             className="hp-change-input"
-                            defaultValue={unitData.roundHp[ii] > 0 ? unitData.roundHp[ii] : undefined}
+                            defaultValue={unitData.roundHp[roundNum] > 0 ? unitData.roundHp[roundNum] : undefined}
                             pattern="[\d\-\+\*\/]+"
-                            id={`${ii}::${unitData.uuid}`}
+                            id={unitData.uuid}
                             onChange={this.onHpChange}
                             onKeyDown={this.onInputKeyDown}
                         />
@@ -91,7 +93,29 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
                 );
             }
 
-            const isBadHp = unitData.currentHp <= 0;
+            const currentStatuses = this.props.controller.getStatuses(unitData, this.activeRound);
+            let statusInfo = [];
+            for (const status of currentStatuses) {
+                statusInfo.push(<p className="status-info-text" key={UnitCondition[status.statusId]}>{`${UnitCondition[status.statusId]}, ${status.endsRound - this.activeRound}r`}</p>)
+            }
+
+            const isBadHp = unitData.currentHp < 1;
+            let statusInfoOrInput;
+            if(this.state.showStatusIds.includes(unitData.uuid) ){
+                const statusOptions = getEnumStrings(UnitCondition).map(k => <option key={k} value={k}>{k}</option>)
+                statusInfoOrInput = <>
+                    <select id="status-select" autoFocus={true} key="status-select">{statusOptions}</select>
+                    <input id="status-duration" type="number" defaultValue="1" key="status-duration"/>
+                    <input type="button" name="add status" id={`${unitData.uuid}`} value="Add" onClick={this.addStatusInput} key="add-status"/>
+                </>;
+            } else {
+                statusInfoOrInput = 
+                    <>
+                        {statusInfo}
+                        <input key="add-status" type="button" name="add status" id={unitData.uuid} value="+" onClick={this.showStatusInpt}/>
+                    </>;
+            }
+
             const newRow = <tr key={`unit-data-${unitData.uuid}`} className={isUnitTurn ? "active-turn" : undefined}>
                 <td><input type="button" name="remove" id={unitData.uuid} value="-" onClick={this.removeUnit}/></td>
                 <td>{unitData.order}</td>
@@ -102,12 +126,27 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
                 <td><input type="number" id={unitData.uuid} defaultValue={unitData.initiativeMod} onKeyDown={this.onInputKeyDown} onChange={this.onInitiativeModChange}/></td>
                 <td><input type="number" id={unitData.uuid} defaultValue={unitData.startingHp} onKeyDown={this.onInputKeyDown} onChange={this.onStartingHpChange}></input></td>
                 {hpChangeRows}
+                <td>{statusInfoOrInput}</td>
             </tr>;
 
             allRows.push(newRow);
         }
 
         return allRows;
+    }
+
+    private addStatusInput: FormEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        const duration = Number.parseInt(e.currentTarget.parentElement?.querySelector<HTMLInputElement>("#status-duration")?.value ?? "1");
+        const statusIndex = e.currentTarget.parentElement?.querySelector<HTMLSelectElement>("#status-select")?.selectedIndex;
+        if(statusIndex === undefined) throw new Error("Invalid status");
+        this.props.controller.addStatus(id, this.activeRound, duration, statusIndex);
+        this.setState(prevState => ({showStatusIds:prevState.showStatusIds.filter(i => i !== id)}))
+    }
+
+    private showStatusInpt: FormEventHandler<HTMLInputElement> = e => {
+        const id = e.currentTarget.id;
+        this.setState(prevState => ({showStatusIds:[...prevState.showStatusIds, id]}));
     }
 
     private onStartingHpChange: ChangeEventHandler<HTMLInputElement> = e => {
@@ -144,12 +183,16 @@ export class CombatTable extends Component<{controller:MainController, allUnits:
             
         if(Number.isNaN(value)) return;
 
-        const [round, id] = e.currentTarget.id.split("::");
-        this.props.controller.addHpChange(id, Number.parseInt(round), value);
+        const id = e.currentTarget.id;
+        this.props.controller.addHpChange(id, this.activeRound, value);
     }
 
     private removeUnit: FormEventHandler<HTMLInputElement> = e => {
         const uuid = e.currentTarget.id;
         this.props.controller.removeUnit(uuid);
     }
+}
+
+function getEnumStrings (e:Object): string[] {
+    return Object.values(e).filter(isNaN);
 }

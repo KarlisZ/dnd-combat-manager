@@ -50,3 +50,7 @@ button {
     background-color: firebrick !important;
     font-weight: bold;
 }
+
+.status-info-text {
+    margin: 0;
+}

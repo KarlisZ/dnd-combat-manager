@@ -1,3 +1,8 @@
+import { UnitCondition } from "../controller/MainController";
+
+export interface StatusData {
+    statusId:UnitCondition, endsRound:number
+}
 export interface UnitData {
     order: number;
     name: string;
@@ -8,6 +13,7 @@ export interface UnitData {
     startingHp: number;
     uuid: string;
     roundHp: number[];
+    roundStatus: StatusData[][];
 }
 
 
