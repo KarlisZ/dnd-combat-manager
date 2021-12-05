@@ -1,6 +1,6 @@
-import React, { ChangeEventHandler, Component, FormEventHandler, KeyboardEventHandler } from "react";
-import { MainController, UnitCondition } from "../controller/MainController";
-import { UnitData } from "../model/MainModel";
+import { ChangeEventHandler, Component, FormEventHandler, KeyboardEventHandler } from "react";
+import { MainController, UnitCondition } from "../../controller/MainController";
+import { UnitData } from "../../model/MainModel";
 import { CombatControls } from "./CombatControls";
 
 export class CombatTable extends Component<{controller:MainController; allUnits:UnitData[];}, {turnNum:number; showStatusIds:string[];}> {
@@ -20,7 +20,8 @@ export class CombatTable extends Component<{controller:MainController; allUnits:
         }
         return allUnits.length
             ? <div>
-                <table>
+                <CombatControls onNewCombat={this.onNewCombat} onNextTurn={this.onNextTurn} onPrevTurn={this.onPrevTurn}/>
+                <table className="combat-table">
                     <thead>
                     <tr>
                         <th>Del</th>
@@ -39,7 +40,6 @@ export class CombatTable extends Component<{controller:MainController; allUnits:
                         {rows}
                     </tbody>
                 </table>
-                <CombatControls onNewCombat={this.onNewCombat} onNextTurn={this.onNextTurn} onPrevTurn={this.onPrevTurn}/>
             </div>
             : null;
     }

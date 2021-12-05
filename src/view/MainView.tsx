@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { CombatTable } from "./CombatTable";
+import { CombatTable } from "./combat/CombatTable";
 import { HeroTable } from "./HeroTable";
 import { SpawnControls } from "./SpawnControls";
 import { MainController } from "../controller/MainController";
@@ -14,12 +14,21 @@ export class MainView extends Component<{controller:MainController; model:MainMo
     }
 
     public render(){
-        return <>
+        return <div className="app-container">
             <CombatTable controller={this.props.controller} allUnits={this.state.allUnits}/>
             <SpawnControls onSubmit={this.props.controller.addNpc}/>
             <HeroTable onAddHero={this.props.controller.addHero}/>
             <label>Save?</label>
             <input type="checkbox" defaultChecked={true} />
-        </>;
+            <p>Ideas:
+                 collapse unnecessary columns;
+                  save to unique id;
+                   round scroller;
+                    remove status;
+                     click to select round;
+                      apply status to multiple units;
+                      show input field after click to save space;
+            </p>
+        </div>;
     }
 }

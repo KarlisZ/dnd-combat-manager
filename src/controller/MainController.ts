@@ -47,15 +47,17 @@ export class MainController {
     };
 
     public addNpc = (spawnData:SpawnData) => {
-        const initativeRoll = getRandomInt(1, 20);
-        this.addUnit({
-            currentHp: spawnData.hp,
-            initiativeMod: spawnData.initiativeMod,
-            initiativeRoll: initativeRoll,
-            initiative: initativeRoll + spawnData.initiativeMod,
-            name: spawnData.name,
-            startingHp: spawnData.hp,
-        });
+        for (let i = 0; i < spawnData.count; i++) {
+            const initativeRoll = getRandomInt(1, 20);
+            this.addUnit({
+                currentHp: spawnData.hp,
+                initiativeMod: spawnData.initiativeMod,
+                initiativeRoll: initativeRoll,
+                initiative: initativeRoll + spawnData.initiativeMod,
+                name: spawnData.name,
+                startingHp: spawnData.hp,
+            });
+        }
     };
 
     public getStatuses(unit: UnitData, round: number, turnNum:number):StatusData[] {
